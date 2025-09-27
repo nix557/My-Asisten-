@@ -15,20 +15,27 @@
   padding: 0;
 }
 
-body {
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
   font-family: 'Inter', sans-serif;
   background: var(--light-gray);
   color: var(--text-primary);
-  height: 100vh;
-  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
 }
 
 .app {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  max-width: 1000px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
   background: white;
   box-shadow: var(--shadow);
 }
@@ -39,7 +46,9 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
+  width: 100%;
   padding: 20px;
+  background: var(--light-gray);
 }
 
 .api-card {
@@ -125,6 +134,7 @@ body {
   align-items: center;
   padding: 15px 20px;
   border-bottom: 1px solid var(--medium-gray);
+  flex-shrink: 0;
 }
 
 .header-title {
@@ -163,6 +173,8 @@ body {
   flex: 1;
   overflow-y: auto;
   padding: 20px;
+  /* Ensure messages container takes available space */
+  min-height: 0;
 }
 
 .empty-state {
@@ -246,6 +258,11 @@ body {
   border-bottom-left-radius: 4px;
 }
 
+.bubble.error {
+  background: #ffebee;
+  color: #c62828;
+}
+
 .bubble-text {
   white-space: pre-wrap;
   line-height: 1.5;
@@ -288,6 +305,9 @@ body {
 .input-container {
   padding: 15px 20px;
   border-top: 1px solid var(--medium-gray);
+  flex-shrink: 0;
+  /* Ensure input container stays at bottom */
+  background: white;
 }
 
 .input-group {
@@ -323,6 +343,7 @@ body {
   justify-content: center;
   cursor: pointer;
   transition: transform 0.2s;
+  flex-shrink: 0;
 }
 
 .send-button:hover:not(:disabled) {
@@ -341,9 +362,49 @@ body {
   text-align: center;
 }
 
-/* Responsive */
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .app { max-width: 100%; }
-  .message-content { max-width: 90%; }
-  .api-card { padding: 30px 20px; }
+  .app {
+    border-radius: 0;
+    max-width: 100%;
+  }
+  
+  .message-content {
+    max-width: 90%;
+  }
+  
+  .api-card {
+    padding: 30px 20px;
+  }
+  
+  .chat-header {
+    padding: 12px 15px;
+  }
+  
+  .messages-container {
+    padding: 15px;
+  }
+  
+  .input-container {
+    padding: 12px 15px;
+  }
+  
+  .bubble {
+    padding: 10px 14px;
+    font-size: 15px;
+  }
+}
+
+/* Fix for iOS Safari */
+@supports (-webkit-touch-callout: none) {
+  .input-container {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+  }
+}
+
+/* Viewport height fix for mobile browsers */
+@viewport {
+  height: device-height;
 }
