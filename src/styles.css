@@ -107,8 +107,13 @@ html, body {
   appearance: none;
   /* Ensure input is clickable */
   pointer-events: auto !important;
-  /* Fix for iOS PWA */
+  /* Fix for iOS PWA - force GPU acceleration */
   transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  /* Fix for iOS PWA - prevent zoom */
+  font-size: 16px;
+  /* Fix for iOS PWA - ensure proper touch handling */
+  touch-action: manipulation;
 }
 
 .api-input:focus {
@@ -129,6 +134,9 @@ html, body {
   transition: transform 0.2s;
   /* Ensure button is clickable */
   pointer-events: auto !important;
+  /* Fix for iOS PWA - force GPU acceleration */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .api-button:hover {
@@ -144,20 +152,6 @@ html, body {
 .help-text a {
   color: var(--primary);
   text-decoration: none;
-}
-
-.pwa-notice {
-  margin-top: 20px;
-  padding: 15px;
-  background: #fff3cd;
-  border-radius: var(--radius);
-  border: 1px solid #ffeaa7;
-}
-
-.pwa-notice p {
-  margin: 0;
-  font-size: 13px;
-  color: #856404;
 }
 
 /* Chat UI */
@@ -210,6 +204,9 @@ html, body {
   color: var(--text-secondary);
   transition: background 0.2s;
   pointer-events: auto !important;
+  /* Fix for iOS PWA - force GPU acceleration */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .icon-button:hover {
@@ -402,8 +399,13 @@ html, body {
   appearance: none;
   /* Ensure input is clickable */
   pointer-events: auto !important;
-  /* Fix for iOS PWA */
+  /* Fix for iOS PWA - force GPU acceleration */
   transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  /* Fix for iOS PWA - prevent zoom */
+  font-size: 16px;
+  /* Fix for iOS PWA - ensure proper touch handling */
+  touch-action: manipulation;
 }
 
 .send-button {
@@ -420,6 +422,9 @@ html, body {
   transition: transform 0.2s;
   flex-shrink: 0;
   pointer-events: auto !important;
+  /* Fix for iOS PWA - force GPU acceleration */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .send-button:hover:not(:disabled) {
@@ -499,6 +504,8 @@ html, body {
   .api-input, .message-input {
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
+    position: relative;
+    z-index: 1;
   }
 }
 
@@ -509,4 +516,9 @@ html, body {
   input {
     font-size: 16px !important;
   }
+}
+
+/* Fix for iOS PWA input focus issues */
+input:focus, textarea:focus {
+  outline: none;
 }
