@@ -5,12 +5,20 @@ const App = () => {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isPWA, setIsPWA] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const apiInputRef = useRef(null);
   const messagesContainerRef = useRef(null);
 
-  // Check for saved API key on mount
+  // Detect if running in PWA mode
   useEffect(() => {
+    const isInStandaloneMode = () => {
+      return ('standalone' in window.navigator) && (window.navigator.standalone);
+    };
+    
+    setIsPWA(isInStandaloneMode());
+    
     const savedApiKey = localStorage.getItem('gemini_api_key');
     if (savedApiKey) {
       setApiKey(savedApiKey);
@@ -20,14 +28,25 @@ const App = () => {
   // Focus input when needed
   useEffect(() => {
     if (inputRef.current && apiKey) {
-      inputRef.current.focus();
+      // Small delay to ensure focus works in PWA mode
+      setTimeout(() => {
+        inputRef.current.focus();
+      }, 100);
     }
   }, [messages, apiKey]);
+
+  // Focus API input when in PWA mode
+  useEffect(() => {
+    if (isPWA && !apiKey && apiInputRef.current) {
+      setTimeout(() => {
+        apiInputRef.current.focus();
+      }, 300);
+    }
+  }, [isPWA, apiKey]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
     if (messagesContainerRef.current && messagesEndRef.current) {
-      // Use setTimeout to ensure DOM has updated
       setTimeout(() => {
         messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
       }, 100);
@@ -44,6 +63,12 @@ const App = () => {
   const handleResetApiKey = () => {
     setApiKey('');
     localStorage.removeItem('gemini_api_key');
+    // Focus API input after reset in PWA mode
+    if (isPWA && apiInputRef.current) {
+      setTimeout(() => {
+        apiInputRef.current.focus();
+      }, 100);
+    }
   };
 
   const handleSendMessage = async () => {
@@ -124,6 +149,11 @@ const App = () => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Special handler for API input in PWA mode
+  const handleApiInputChange = (e) => {
+    setApiKey(e.target.value);
+  };
+
   if (!apiKey) {
     return (
       <div className="api-container">
@@ -133,18 +163,28 @@ const App = () => {
           <p>Masukkan kunci API Gemini untuk memulai</p>
           <form onSubmit={handleApiKeySubmit}>
             <input
+              ref={apiInputRef}
               type="password"
               value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
+              onChange={handleApiInputChange}
               placeholder="Masukkan kunci API Gemini"
               className="api-input"
               required
+              autoComplete="off"
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck="false"
             />
             <button type="submit" className="api-button">Mulai</button>
           </form>
           <div className="help-text">
             Dapatkan kunci API di <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>
           </div>
+          {isPWA && (
+            <div className="pwa-notice">
+              <p>Anda membuka aplikasi dari Home Screen. Jika input tidak berfungsi, coba buka melalui browser Safari.</p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -231,6 +271,10 @@ const App = () => {
             placeholder="Ketik pesan Anda..."
             className="message-input"
             rows={1}
+            autoComplete="off"
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck="false"
           />
           <button
             onClick={handleSendMessage}
