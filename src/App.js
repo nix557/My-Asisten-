@@ -1,24 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 const App = () => {
   const [apiKey, setApiKey] = useState('');
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const resizeTimeoutRef = useRef(null);
+  const isScrollingRef = useRef(false);
 
-  // Handle viewport resize (especially for mobile keyboard)
-  useEffect(() => {
-    const handleResize = () => {
-      setViewportHeight(window.innerHeight);
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
+  // Check for saved API key on mount
   useEffect(() => {
     const savedApiKey = localStorage.getItem('gemini_api_key');
     if (savedApiKey) {
@@ -26,16 +18,50 @@ const App = () => {
     }
   }, []);
 
+  // Optimized scroll to bottom
+  const scrollToBottom = useCallback(() => {
+    if (messagesEndRef.current && !isScrollingRef.current) {
+      isScrollingRef.current = true;
+      requestAnimationFrame(() => {
+        messagesEndRef.current.scrollIntoView({ behavior: 'auto' });
+        isScrollingRef.current = false;
+      });
+    }
+  }, []);
+
+  // Focus input when needed
   useEffect(() => {
-    scrollToBottom();
-    if (inputRef.current) {
+    if (inputRef.current && apiKey) {
       inputRef.current.focus();
     }
   }, [messages, apiKey]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
+
+  // Handle viewport resize with debouncing
+  useEffect(() => {
+    const handleResize = () => {
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+      
+      resizeTimeoutRef.current = setTimeout(() => {
+        // Force re-render without causing performance issues
+        document.body.style.height = window.innerHeight + 'px';
+      }, 100);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleApiKeySubmit = (e) => {
     e.preventDefault();
@@ -63,20 +89,17 @@ const App = () => {
     setIsLoading(true);
 
     try {
+      // Create a copy of messages for the API call
+      const messagesForApi = [...messages, userMessage];
+      
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [
-            ...messages.map(msg => ({
-              role: msg.sender === 'user' ? 'user' : 'model',
-              parts: [{ text: msg.text }]
-            })),
-            {
-              role: 'user',
-              parts: [{ text: inputText }]
-            }
-          ],
+          contents: messagesForApi.map(msg => ({
+            role: msg.sender === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.text }]
+          })),
           generationConfig: {
             temperature: 0.7,
             topK: 40,
@@ -133,7 +156,7 @@ const App = () => {
 
   if (!apiKey) {
     return (
-      <div className="api-container" style={{ height: `${viewportHeight}px` }}>
+      <div className="api-container">
         <div className="api-card">
           <div className="logo">AI</div>
           <h1>AI Asisten</h1>
@@ -158,7 +181,7 @@ const App = () => {
   }
 
   return (
-    <div className="app" style={{ height: `${viewportHeight}px` }}>
+    <div className="app">
       <div className="chat-header">
         <div className="header-title">
           <div className="logo">AI</div>
@@ -179,7 +202,7 @@ const App = () => {
         </div>
       </div>
 
-      <div className="messages-container">
+      <div className="messages-container" id="messages-container">
         {messages.length === 0 ? (
           <div className="empty-state">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
