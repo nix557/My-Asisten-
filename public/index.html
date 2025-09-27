@@ -60,6 +60,8 @@
       .api-input, .message-input {
         transform: translateZ(0);
         -webkit-transform: translateZ(0);
+        position: relative;
+        z-index: 1;
       }
     }
     
@@ -73,6 +75,11 @@
       -webkit-appearance: none;
       -moz-appearance: none;
       appearance: none;
+    }
+    
+    /* Fix for iOS PWA input focus issues */
+    input:focus, textarea:focus {
+      outline: none;
     }
   </style>
 </head>
