@@ -31,7 +31,6 @@ html, body {
   bottom: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Prevent scrolling and bouncing */
   overscroll-behavior: none;
   touch-action: manipulation;
 }
@@ -102,10 +101,19 @@ html, body {
   font-size: 16px;
   margin-bottom: 20px;
   outline: none;
+  /* Fix for PWA input issues */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  /* Ensure input is clickable */
+  pointer-events: auto !important;
+  /* Fix for iOS PWA */
+  transform: translateZ(0);
 }
 
 .api-input:focus {
   border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
 }
 
 .api-button {
@@ -119,6 +127,8 @@ html, body {
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s;
+  /* Ensure button is clickable */
+  pointer-events: auto !important;
 }
 
 .api-button:hover {
@@ -136,6 +146,20 @@ html, body {
   text-decoration: none;
 }
 
+.pwa-notice {
+  margin-top: 20px;
+  padding: 15px;
+  background: #fff3cd;
+  border-radius: var(--radius);
+  border: 1px solid #ffeaa7;
+}
+
+.pwa-notice p {
+  margin: 0;
+  font-size: 13px;
+  color: #856404;
+}
+
 /* Chat UI */
 .chat-header {
   position: fixed;
@@ -151,7 +175,6 @@ html, body {
   background: white;
   z-index: 100;
   box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  /* Prevent header from being interactive */
   pointer-events: none;
 }
 
@@ -186,6 +209,7 @@ html, body {
   cursor: pointer;
   color: var(--text-secondary);
   transition: background 0.2s;
+  pointer-events: auto !important;
 }
 
 .icon-button:hover {
@@ -202,11 +226,8 @@ html, body {
   padding: 20px;
   -webkit-overflow-scrolling: touch;
   background: white;
-  /* Improve scrolling performance */
   will-change: transform;
-  /* Prevent paint issues */
   contain: content;
-  /* Disable overscroll */
   overscroll-behavior: contain;
 }
 
@@ -231,7 +252,6 @@ html, body {
   display: flex;
   margin-bottom: 20px;
   animation: fadeIn 0.3s;
-  /* Optimize animations */
   will-change: opacity, transform;
 }
 
@@ -350,7 +370,6 @@ html, body {
   background: white;
   z-index: 100;
   box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
-  /* Prevent footer from being interactive */
   pointer-events: none;
 }
 
@@ -377,6 +396,14 @@ html, body {
   max-height: 120px;
   padding: 8px 12px;
   font-family: inherit;
+  /* Fix for PWA input issues */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  /* Ensure input is clickable */
+  pointer-events: auto !important;
+  /* Fix for iOS PWA */
+  transform: translateZ(0);
 }
 
 .send-button {
@@ -392,6 +419,7 @@ html, body {
   cursor: pointer;
   transition: transform 0.2s;
   flex-shrink: 0;
+  pointer-events: auto !important;
 }
 
 .send-button:hover:not(:disabled) {
@@ -465,6 +493,12 @@ html, body {
   .chat-header {
     padding-top: calc(15px + env(safe-area-inset-top));
     height: calc(var(--header-height) + env(safe-area-inset-top));
+  }
+  
+  /* Fix for PWA input issues in iOS */
+  .api-input, .message-input {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
   }
 }
 
