@@ -5,8 +5,19 @@ const App = () => {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Handle viewport resize (especially for mobile keyboard)
+  useEffect(() => {
+    const handleResize = () => {
+      setViewportHeight(window.innerHeight);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const savedApiKey = localStorage.getItem('gemini_api_key');
@@ -122,7 +133,7 @@ const App = () => {
 
   if (!apiKey) {
     return (
-      <div className="api-container">
+      <div className="api-container" style={{ height: `${viewportHeight}px` }}>
         <div className="api-card">
           <div className="logo">AI</div>
           <h1>AI Asisten</h1>
@@ -147,7 +158,7 @@ const App = () => {
   }
 
   return (
-    <div className="app">
+    <div className="app" style={{ height: `${viewportHeight}px` }}>
       <div className="chat-header">
         <div className="header-title">
           <div className="logo">AI</div>
