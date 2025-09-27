@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const App = () => {
   const [apiKey, setApiKey] = useState('');
@@ -7,25 +7,13 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-  const resizeTimeoutRef = useRef(null);
-  const isScrollingRef = useRef(false);
+  const messagesContainerRef = useRef(null);
 
   // Check for saved API key on mount
   useEffect(() => {
     const savedApiKey = localStorage.getItem('gemini_api_key');
     if (savedApiKey) {
       setApiKey(savedApiKey);
-    }
-  }, []);
-
-  // Optimized scroll to bottom
-  const scrollToBottom = useCallback(() => {
-    if (messagesEndRef.current && !isScrollingRef.current) {
-      isScrollingRef.current = true;
-      requestAnimationFrame(() => {
-        messagesEndRef.current.scrollIntoView({ behavior: 'auto' });
-        isScrollingRef.current = false;
-      });
     }
   }, []);
 
@@ -38,30 +26,13 @@ const App = () => {
 
   // Scroll to bottom when messages change
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
-
-  // Handle viewport resize with debouncing
-  useEffect(() => {
-    const handleResize = () => {
-      if (resizeTimeoutRef.current) {
-        clearTimeout(resizeTimeoutRef.current);
-      }
-      
-      resizeTimeoutRef.current = setTimeout(() => {
-        // Force re-render without causing performance issues
-        document.body.style.height = window.innerHeight + 'px';
+    if (messagesContainerRef.current && messagesEndRef.current) {
+      // Use setTimeout to ensure DOM has updated
+      setTimeout(() => {
+        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
       }, 100);
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      if (resizeTimeoutRef.current) {
-        clearTimeout(resizeTimeoutRef.current);
-      }
-    };
-  }, []);
+    }
+  }, [messages, isLoading]);
 
   const handleApiKeySubmit = (e) => {
     e.preventDefault();
@@ -89,7 +60,6 @@ const App = () => {
     setIsLoading(true);
 
     try {
-      // Create a copy of messages for the API call
       const messagesForApi = [...messages, userMessage];
       
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
@@ -181,7 +151,8 @@ const App = () => {
   }
 
   return (
-    <div className="app">
+    <>
+      {/* Fixed Header */}
       <div className="chat-header">
         <div className="header-title">
           <div className="logo">AI</div>
@@ -202,7 +173,8 @@ const App = () => {
         </div>
       </div>
 
-      <div className="messages-container" id="messages-container">
+      {/* Scrollable Messages Container */}
+      <div className="messages-container" ref={messagesContainerRef}>
         {messages.length === 0 ? (
           <div className="empty-state">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -248,6 +220,7 @@ const App = () => {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Fixed Footer */}
       <div className="input-container">
         <div className="input-group">
           <textarea
@@ -272,7 +245,7 @@ const App = () => {
         </div>
         <p className="input-info">Tekan Enter untuk mengirim, Shift+Enter untuk baris baru</p>
       </div>
-    </div>
+    </>
   );
 };
 
