@@ -5,20 +5,13 @@ const App = () => {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isPWA, setIsPWA] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const apiInputRef = useRef(null);
   const messagesContainerRef = useRef(null);
 
-  // Detect if running in PWA mode
+  // Check for saved API key on mount
   useEffect(() => {
-    const isInStandaloneMode = () => {
-      return ('standalone' in window.navigator) && (window.navigator.standalone);
-    };
-    
-    setIsPWA(isInStandaloneMode());
-    
     const savedApiKey = localStorage.getItem('gemini_api_key');
     if (savedApiKey) {
       setApiKey(savedApiKey);
@@ -28,21 +21,20 @@ const App = () => {
   // Focus input when needed
   useEffect(() => {
     if (inputRef.current && apiKey) {
-      // Small delay to ensure focus works in PWA mode
       setTimeout(() => {
         inputRef.current.focus();
       }, 100);
     }
   }, [messages, apiKey]);
 
-  // Focus API input when in PWA mode
+  // Focus API input when component mounts
   useEffect(() => {
-    if (isPWA && !apiKey && apiInputRef.current) {
+    if (!apiKey && apiInputRef.current) {
       setTimeout(() => {
         apiInputRef.current.focus();
       }, 300);
     }
-  }, [isPWA, apiKey]);
+  }, [apiKey]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -63,8 +55,8 @@ const App = () => {
   const handleResetApiKey = () => {
     setApiKey('');
     localStorage.removeItem('gemini_api_key');
-    // Focus API input after reset in PWA mode
-    if (isPWA && apiInputRef.current) {
+    // Focus API input after reset
+    if (apiInputRef.current) {
       setTimeout(() => {
         apiInputRef.current.focus();
       }, 100);
@@ -149,11 +141,6 @@ const App = () => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Special handler for API input in PWA mode
-  const handleApiInputChange = (e) => {
-    setApiKey(e.target.value);
-  };
-
   if (!apiKey) {
     return (
       <div className="api-container">
@@ -166,7 +153,7 @@ const App = () => {
               ref={apiInputRef}
               type="password"
               value={apiKey}
-              onChange={handleApiInputChange}
+              onChange={(e) => setApiKey(e.target.value)}
               placeholder="Masukkan kunci API Gemini"
               className="api-input"
               required
@@ -174,17 +161,13 @@ const App = () => {
               autoCapitalize="off"
               autoCorrect="off"
               spellCheck="false"
+              inputMode="text"
             />
             <button type="submit" className="api-button">Mulai</button>
           </form>
           <div className="help-text">
             Dapatkan kunci API di <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>
           </div>
-          {isPWA && (
-            <div className="pwa-notice">
-              <p>Anda membuka aplikasi dari Home Screen. Jika input tidak berfungsi, coba buka melalui browser Safari.</p>
-            </div>
-          )}
         </div>
       </div>
     );
@@ -275,6 +258,7 @@ const App = () => {
             autoCapitalize="off"
             autoCorrect="off"
             spellCheck="false"
+            inputMode="text"
           />
           <button
             onClick={handleSendMessage}
